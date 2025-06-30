@@ -5,6 +5,7 @@
 - **Gabriel Freiberger**  
 - **Gabriel Coelho**  
 - **Gustavo Haiduk**
+- **Bredley Bauer**
 
 ## Descrição
 
