@@ -1,0 +1,38 @@
+name: Deploy via SCP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Compress repo via git archive
+        run: git archive -o app.tar.gz HEAD
+
+      - name: Upload app via SCP
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.DCPRD001_HOST }}
+          username: ${{ secrets.DCPRD001_USER }}
+          key: ${{ secrets.DCPRD001_SSH_KEY }}
+          source: "app.tar.gz"
+          target: "/tmp/"
+
+      - name: Replace remote app directory
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DCPRD001_HOST }}
+          username: ${{ secrets.DCPRD001_USER }}
+          key: ${{ secrets.DCPRD001_SSH_KEY }}
+          script: |
+            rm -rf /var/www/html/*
+            tar -xzf /tmp/app.tar.gz -C /var/www/html/
+            rm /tmp/app.tar.gz
+
