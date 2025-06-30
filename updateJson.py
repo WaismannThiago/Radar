@@ -8,7 +8,7 @@ from azure.storage.blob import BlobServiceClient
 AZURE_CONNECTION_STRING = (
     "DefaultEndpointsProtocol=https;"
     "AccountName=datacenterproducao005;"
-    "AccountKey=GuCNcBfxoe6jdfJ5ZLd1BfQOFF0RipbanvCtNcyiPvZR4WVR4lwyzQATSYabo8V9Tz3gTSgqOh73+AStyjspqA==;"
+    "AccountKey=;"
     "EndpointSuffix=core.windows.net"
 )
 
