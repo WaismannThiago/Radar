@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Radar Primário SBCT</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      overflow: hidden;
+      font-family: monospace;
+      color: lime;
+      height: 100vh;
+      width: 100vw;
+    }
+    canvas {
+      display: block;
+      background: radial-gradient(circle at center, #002200, #000);
+    }
+    #info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 10px 15px;
+      border-radius: 5px;
+      border: 1px solid lime;
+      font-size: 14px;
+      user-select: none;
+      max-width: 360px;
+    }
+    #info strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 16px;
+      color: #aaffaa;
+    }
+    #gpsLabel {
+      color: #00ff00;
+      font-weight: bold;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="radar"></canvas>
+  <div id="info">
+    <strong>Radar Primário - SBCT</strong>
+    Local: Curitiba, PR - Brasil<br>
+    Alcance: 500 km<br>
+    Atualização: <span id="timestamp">--:--:--</span><br>
+    <div id="gpsLabel">
+      Posição: <span id="targetPos">--</span><br>
+      Distância: <span id="targetDist">--</span><br>
+      Direção: <span id="targetBearing">--</span>
+    </div>
+  </div>
+
+  <script>
+    const SBCT_LAT = -25.5285;
+    const SBCT_LON = -49.1758;
+    const maxRangeKm = 500;
+    const updateInterval = 5000;
+
+    const canvas = document.getElementById("radar");
+    const ctx = canvas.getContext("2d");
+    let width, height;
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    const centerX = () => width / 2;
+    const centerY = () => height / 2;
+
+    function kmToPixels(km) {
+      const maxPixels = Math.min(width, height) / 2 - 30;
+      return (km / maxRangeKm) * maxPixels;
+    }
+
+    let target = null;
+    let lastFetchTime = 0;
+    const noisePoints = [];
+
+    let audioCtx;
+    let sweepOscillator;
+    let sweepGain;
+    let isAudioStarted = false;
+
+    function initAudio() {
+      if (isAudioStarted) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      sweepOscillator = audioCtx.createOscillator();
+      sweepOscillator.type = "sine";
+      sweepOscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+
+      sweepGain = audioCtx.createGain();
+      sweepGain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+
+      sweepOscillator.connect(sweepGain).connect(audioCtx.destination);
+      sweepOscillator.start();
+
+      isAudioStarted = true;
+    }
+
+    function playPing() {
+      if (!isAudioStarted) return;
+
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+
+      gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.1, audioCtx.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.15);
+
+      osc.connect(gainNode).connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime);
+      osc.stop(audioCtx.currentTime + 0.15);
+    }
+
+    function drawRadarBase() {
+      ctx.strokeStyle = "lime";
+      ctx.lineWidth = 1;
+      ctx.font = "12px monospace";
+      ctx.fillStyle = "lime";
+
+      for (let km = 100; km <= maxRangeKm; km += 100) {
+        ctx.beginPath();
+        ctx.arc(centerX(), centerY(), kmToPixels(km), 0, 2 * Math.PI);
+        ctx.stroke();
+        ctx.fillText(`${km} km`, centerX() + kmToPixels(km) + 8, centerY() + 4);
+      }
+
+      for (let i = 0; i < 360; i += 30) {
+        const rad = i * Math.PI / 180;
+        ctx.beginPath();
+        ctx.moveTo(centerX(), centerY());
+        ctx.lineTo(centerX() + Math.cos(rad) * kmToPixels(maxRangeKm), centerY() + Math.sin(rad) * kmToPixels(maxRangeKm));
+        ctx.stroke();
+      }
+
+      ctx.font = "10px monospace";
+      for (let i = 0; i < 360; i += 10) {
+        const rad = i * Math.PI / 180;
+        const r = kmToPixels(maxRangeKm);
+        const x = centerX() + Math.cos(rad) * (r + 14);
+        const y = centerY() + Math.sin(rad) * (r + 14);
+        ctx.fillText(i.toString().padStart(3, '0') + "°", x - 10, y + 4);
+      }
+
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+      ctx.arc(centerX(), centerY(), 7, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.fillStyle = "white";
+      ctx.font = "14px monospace";
+      ctx.fillText("SBCT", centerX() + 12, centerY() - 12);
+    }
+
+    function drawSweep(progress) {
+      const length = Math.min(width, height) / 2 - 30;
+      const angle = progress * 2 * Math.PI;
+
+      if (isAudioStarted) {
+        const gainValue = 0.02 + 0.02 * Math.sin(progress * 2 * Math.PI);
+        sweepGain.gain.setTargetAtTime(gainValue, audioCtx.currentTime, 0.01);
+      }
+
+      const grad = ctx.createRadialGradient(centerX(), centerY(), 0, centerX(), centerY(), length);
+      grad.addColorStop(0, "rgba(0, 255, 0, 0.12)");
+      grad.addColorStop(0.9, "rgba(0, 255, 0, 0)");
+
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.moveTo(centerX(), centerY());
+      ctx.arc(centerX(), centerY(), length, angle - 0.03, angle + 0.03);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawNoise() {
+      if (Math.random() < 0.15) {
+        const angle = Math.random() * 2 * Math.PI;
+        const radius = Math.random() * kmToPixels(maxRangeKm);
+        noisePoints.push({
+          x: centerX() + Math.cos(angle) * radius,
+          y: centerY() + Math.sin(angle) * radius,
+          life: 40
+        });
+      }
+
+      for (let i = noisePoints.length - 1; i >= 0; i--) {
+        const p = noisePoints[i];
+        ctx.fillStyle = `rgba(0,255,0,${p.life / 40})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 1.8, 0, 2 * Math.PI);
+        ctx.fill();
+        p.life--;
+        if (p.life <= 0) noisePoints.splice(i, 1);
+      }
+    }
+
+    function drawTarget(progress) {
+      if (!target) return;
+
+      const R = 6371;
+      const dLat = (target.lat - SBCT_LAT) * Math.PI / 180;
+      const dLon = (target.lon - SBCT_LON) * Math.PI / 180;
+      const lat1 = SBCT_LAT * Math.PI / 180;
+      const lat2 = target.lat * Math.PI / 180;
+
+      const a = Math.sin(dLat / 2) ** 2 +
+                Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distanceKm = R * c;
+
+      const bearingRad = Math.atan2(
+        Math.sin(dLon) * Math.cos(lat2),
+        Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon)
+      );
+      const bearingDeg = (bearingRad * 180 / Math.PI + 360) % 360;
+
+      document.getElementById("targetPos").textContent = `${target.lat.toFixed(4)}, ${target.lon.toFixed(4)}`;
+      document.getElementById("targetDist").textContent = `${distanceKm.toFixed(1)} km`;
+      document.getElementById("targetBearing").textContent = `${bearingDeg.toFixed(0)} °`;
+
+      if (distanceKm <= maxRangeKm) {
+        const x = centerX() + Math.cos(bearingRad) * kmToPixels(distanceKm);
+        const y = centerY() + Math.sin(bearingRad) * kmToPixels(distanceKm);
+        const intensity = 1 - progress;
+
+        const grad = ctx.createRadialGradient(x, y, 2, x, y, 8);
+        grad.addColorStop(0, `rgba(255,255,0,${intensity})`);
+        grad.addColorStop(1, `rgba(255,255,0,0)`);
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(x, y, 8, 0, 2 * Math.PI);
+        ctx.fill();
+
+        ctx.fillStyle = `rgba(255,255,0,${intensity})`;
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+    }
+
+    async function fetchGPS() {
+      try {
+        const res = await fetch("http://dcprd001.brazilsouth.cloudapp.azure.com:8080/blob");
+        const data = await res.json();
+        const lat = parseFloat(data["Current GPS latitude"]);
+        const lon = parseFloat(data["Current GPS longitude"]);
+        target = { lat, lon };
+        lastFetchTime = performance.now();
+        playPing();
+      } catch (err) {
+        document.getElementById("targetPos").textContent = "Erro ao obter posição";
+        console.error("Erro ao obter dados GPS:", err);
+      }
+    }
+
+    function animate() {
+      const now = performance.now();
+      let progress = (now - lastFetchTime) / updateInterval;
+      if (progress > 1) progress = 1;
+
+      ctx.fillStyle = "rgba(0,0,0,0.15)";
+      ctx.fillRect(0, 0, width, height);
+
+      drawRadarBase();
+      drawSweep(progress);
+      drawNoise();
+      drawTarget(progress);
+
+      document.getElementById("timestamp").textContent = new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener("click", () => {
+      initAudio();
+    }, { once: true });
+
+    setInterval(fetchGPS, updateInterval);
+    fetchGPS();
+    animate();
+  </script>
+</body>
+</html>
