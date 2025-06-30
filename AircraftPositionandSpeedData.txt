@@ -1,0 +1,42 @@
+Ground Velocity: 475.735 knots
+Total World Velocity: 802.95 feet per second
+Velocity Body Z: 802.482 feet per second
+Velocity Body X: 26.0044 feet per second
+Velocity Body Y: -8.64784 feet per second
+Velocity World Z: 554.695 feet per second
+Velocity World X: -580.553 feet per second
+Velocity World Y: -0.000112842 feet per second
+Acceleration World X: -0.00481558 feet per second squared
+Acceleration World Y: 0.00202509 feet per second squared
+Acceleration World Z: 0.00342226 feet per second squared
+Acceleration Body X: -0.000663295 feet per second squared
+Acceleration Body Y: 0.0019614 feet per second squared
+Acceleration Body Z: 0.00589199 feet per second squared
+Rotation Velocity Body X: 4.98986e-06 feet per second
+Rotation Velocity Body Y: 4.01274e-05 feet per second
+Rotation Velocity Body Z: -6.39215e-05 feet per second
+Relative Wind Velocity Body X: 0.0111894 feet per second
+Relative Wind Velocity Body Y: -8.97109 feet per second
+Relative Wind Velocity Body Z: 831.562 feet per second
+Plane Alt Above Ground: 13112 feet
+Plane Latitude: -0.467265 radians
+Plane Longitude: -0.863217 radians
+Plane Altitude: -0.0107877 feet
+Plane Pitch Degrees: -0.000308377 radians
+Plane Bank Degrees: 5.44263 radians
+Plane Heading Degrees True: 5.75927 radians
+Plane Heading Degrees Magnetic: -18.1424 radians
+Magvar: 544.984 degrees
+Ground Altitude: 3 meters
+Surface Type: 0 (surface ID)
+Sim On Ground: Yes
+Incidence Alpha: 1.34559e-05 radians
+Incidence Beta: 0 radians
+Latitude: 0 radians
+Longitude: -6.519e-311 radians
+Altitude: 8.48798e-314 meters
+Current GPS latitude: -26.7727 degrees
+Current GPS longitude: -49.4582 degrees
+Current GPS altitude: 4541.54 meters
+Current GPS magnetic variation: -0.316644 radians
+-----------------------------

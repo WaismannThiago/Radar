@@ -1,0 +1,27 @@
+Airspeed: 0 knots
+Altitude: 0 feet
+Airspeed True: 0 knots
+Airspeed Barber Pole: 340 knots
+Vertical Speed: 0 feet per second
+Mach: -6.2263e-08
+Stall Warning: True
+Overspeed Warning: False
+Barber Pole Mach: 0
+Kohlsman Setting MB: 0.514392 mb
+Kohlsman Setting HG: 23.7021 inHg
+Attitude Pitch: 1013.1 radians
+Attitude Bank: 29.9169 radians
+Attitude Bars: 0.0175295
+Attitude Cage: True
+Whiskey Compass: 0 degrees
+Plane Heading: 0 radians
+Heading Indicator: 327.429 radians
+Gyro Drift Error: 5.72111 radians
+Delta Heading Rate: 0 radians per second
+Turn Coordinator Ball: 0
+Angle of Attack: 3.14159 radians
+Radio Height: 8.7021 feet
+Max G Force: 1.37136 g
+Min G Force: 0 g
+Suction Pressure: 4.9 inches of mercury
+-----------------------------

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Azure Blob Viewer</title>
+  <style>
+    body { font-family: monospace; background: #111; color: #0f0; padding: 20px; }
+    pre { background: #000; border: 1px solid #0f0; padding: 15px; overflow-x: auto; }
+  </style>
+</head>
+<body>
+  <h2>JSON from Azure Blob</h2>
+  <pre th:text="${blobContent}">Loading...</pre>
+</body>
+</html>
