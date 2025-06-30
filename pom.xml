@@ -31,7 +31,7 @@
   <version>3.1.0</version>
 </dependency>
 
-<!-- H2 Database (para testes rápidos) -->
+<!-- H2 Database-->
 <dependency>
   <groupId>com.h2database</groupId>
   <artifactId>h2</artifactId>
@@ -39,7 +39,7 @@
   <scope>runtime</scope>
 </dependency>
 
-    <!-- Thymeleaf (MVC com HTML) -->
+    <!-- Thymeleaf -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-thymeleaf</artifactId>
@@ -53,14 +53,14 @@
       <version>12.25.0</version>
     </dependency>
 
-    <!-- Azure Identity (autenticação opcional) -->
+    <!-- Azure Identity-->
     <dependency>
       <groupId>com.azure</groupId>
       <artifactId>azure-identity</artifactId>
       <version>1.10.3</version>
     </dependency>
 
-    <!-- Jackson para JSON -->
+    <!-- Jackson-->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
